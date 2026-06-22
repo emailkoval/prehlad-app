@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Môj prehľad</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Prehľad">
+<meta name="theme-color" content="#18181B">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#FAFAF7;
+    --panel:#F3F2EE;
+    --panel-border:#E5E2DA;
+    --panel-border-hover:#D2CEC3;
+    --text-primary:#18181B;
+    --text-muted:#86837C;
+    --light-ok:#2FA968;
+    --light-warn:#EF9D34;
+    --light-danger:#F0573D;
+    --light-none:#D6D3C9;
+    --radius:16px;
+    --radius-sm:10px;
+    --radius-pill:999px;
+    --font-display:'Inter',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'Inter',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg-base);
+    color:var(--text-primary);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  button,input,select,textarea{font-family:inherit;}
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--light-warn);
+    outline-offset:2px;
+  }
+
+  .app-shell{max-width:880px;margin:0 auto;padding:32px 16px 64px;}
+
+  .header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:8px;
+    margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--panel-border);}
+  .header-title{font-family:var(--font-display);font-weight:800;font-size:30px;letter-spacing:-0.01em;
+    margin:0;line-height:1.05;color:var(--text-primary);}
+  .header-sub{font-size:12.5px;color:var(--text-muted);margin-top:6px;}
+  .header-date{font-size:13px;color:var(--text-muted);}
+
+  .summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;}
+  .summary-card{flex:1;min-width:125px;background:var(--panel);border:1px solid var(--panel-border);
+    border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:11px;}
+  .summary-light{width:11px;height:11px;border-radius:50%;flex-shrink:0;background:var(--light-none);}
+  .summary-light.lit-danger{background:var(--light-danger);}
+  .summary-light.lit-warn{background:var(--light-warn);}
+  .summary-light.lit-ok{background:var(--light-ok);}
+  .summary-light.pulse{animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+  @media (prefers-reduced-motion:reduce){.summary-light.pulse{animation:none;}}
+  .summary-count{font-size:22px;font-weight:700;line-height:1;}
+  .summary-label{font-size:10.5px;color:var(--text-muted);letter-spacing:0.02em;margin-top:3px;}
+
+  .tabs-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;}
+  .tab-btn{display:flex;align-items:center;gap:6px;padding:9px 15px;border:1px solid var(--panel-border);
+    border-radius:var(--radius-pill);background:#fff;color:var(--text-muted);cursor:pointer;
+    white-space:nowrap;flex-shrink:0;transition:background .12s ease,color .12s ease,border-color .12s ease;}
+  .tab-btn:hover{border-color:var(--panel-border-hover);color:var(--text-primary);}
+  .tab-btn.active{background:var(--text-primary);color:#fff;border-color:var(--text-primary);}
+  .tab-icon{width:15px;height:15px;flex-shrink:0;}
+  .tab-label{font-weight:600;font-size:13px;}
+  .tab-badge{font-size:10.5px;font-weight:600;background:var(--light-danger);color:#fff;border-radius:var(--radius-pill);
+    padding:1px 6px;line-height:1.4;}
+  .tab-add{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;
+    border:1px dashed var(--panel-border-hover);border-radius:50%;background:transparent;color:var(--text-muted);}
+  .tab-add:hover{color:var(--text-primary);border-color:var(--text-muted);}
+  .tab-add svg{width:15px;height:15px;}
+  .tab-overview .tab-icon{color:var(--light-warn);}
+  .tab-overview.active .tab-icon{color:var(--light-warn);}
+
+  .category-toolbar-sub{font-size:12px;color:var(--text-muted);margin-top:3px;}
+  .item-context{display:inline-block;font-size:10.5px;color:var(--text-muted);background:var(--bg-base);
+    border:1px solid var(--panel-border);border-radius:var(--radius-pill);padding:2px 8px;margin-top:5px;}
+  .overview-bubble-header{display:flex;align-items:center;gap:9px;padding:14px 16px;border-bottom:1px solid var(--panel-border);}
+  .overview-bubble-icon{width:17px;height:17px;color:var(--text-muted);flex-shrink:0;}
+  .overview-bubble-title{font-weight:600;font-size:14px;flex:1;color:var(--text-primary);}
+
+  .category-content{display:flex;flex-direction:column;}
+  .category-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;}
+  .category-toolbar-actions{display:flex;gap:4px;flex-shrink:0;}
+  .category-toolbar-title{font-family:var(--font-display);font-weight:700;font-size:20px;
+    min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary);}
+
+  .filter-row{display:flex;gap:8px;margin-bottom:18px;}
+  .filter-btn{font-size:12.5px;padding:7px 14px;border-radius:var(--radius-pill);border:1px solid var(--panel-border);
+    background:#fff;color:var(--text-muted);cursor:pointer;}
+  .filter-btn.active{background:var(--text-primary);color:#fff;border-color:var(--text-primary);}
+  .filter-btn:hover{border-color:var(--panel-border-hover);}
+
+  .entities-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;}
+  @media (min-width:700px){.entities-grid{grid-template-columns:1fr 1fr;}}
+
+  .panel{background:var(--panel);border:1px solid var(--panel-border);border-radius:var(--radius);
+    overflow:hidden;align-self:start;}
+  .panel-header{display:flex;align-items:center;gap:8px;padding:14px 16px;cursor:pointer;user-select:none;}
+  .panel-name{font-weight:600;font-size:15px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;color:var(--text-primary);}
+  .panel-badge{font-size:11.5px;font-weight:500;padding:2px 8px;border-radius:var(--radius-pill);
+    background:#fff;color:var(--text-muted);border:1px solid var(--panel-border);flex-shrink:0;}
+  .panel-badge.has-issues{color:var(--light-danger);border-color:rgba(240,87,61,0.35);}
+  .panel-chevron{width:15px;height:15px;color:var(--text-muted);transition:transform .15s ease;flex-shrink:0;}
+  .panel.collapsed .panel-chevron{transform:rotate(-90deg);}
+  .icon-btn.panel-rename:hover{color:var(--light-warn);}
+  .icon-btn.panel-delete:hover{color:var(--light-danger);}
+  .icon-btn{flex-shrink:0;}
+
+  .item-list{border-top:1px solid var(--panel-border);}
+  .panel.collapsed .item-list{display:none;}
+  .item-row{display:flex;align-items:flex-start;gap:11px;padding:12px 16px;border-bottom:1px solid var(--panel-border);}
+  .item-row:last-child{border-bottom:none;}
+  .item-light{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:var(--light-none);margin-top:5px;}
+  .item-light.s-overdue{background:var(--light-danger);}
+  .item-light.s-warning{background:var(--light-warn);}
+  .item-light.s-ok{background:var(--light-ok);}
+  .item-info{flex:1;min-width:0;}
+  .item-name{font-size:13.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-primary);}
+  .item-notes{font-size:11.5px;color:var(--text-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .item-due{font-size:12px;font-weight:500;color:var(--text-muted);text-align:right;white-space:nowrap;flex-shrink:0;}
+  .item-due.s-overdue{color:var(--light-danger);}
+  .item-due.s-warning{color:var(--light-warn);}
+  .item-due-rel{font-size:10px;font-weight:400;opacity:.85;margin-top:1px;}
+  .item-actions{display:flex;gap:4px;flex-shrink:0;}
+  .icon-btn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);
+    border:1px solid transparent;background:transparent;color:var(--text-muted);cursor:pointer;padding:0;}
+  .icon-btn svg{width:13px;height:13px;}
+  .icon-btn:hover{background:#fff;color:var(--text-primary);border-color:var(--panel-border);}
+  .icon-btn.done-btn:hover{color:var(--light-ok);}
+  .icon-btn.delete-btn:hover{color:var(--light-danger);}
+
+  @media (max-width:480px){
+    .item-row{flex-wrap:wrap;}
+    .item-info{order:1;flex:1 1 auto;}
+    .item-actions{order:2;}
+    .item-due{order:3;flex:1 1 100%;display:flex;gap:14px;text-align:left;margin:5px 0 0 20px;}
+  }
+
+  .empty-row{padding:16px 14px;font-size:12.5px;color:var(--text-muted);text-align:center;}
+  .empty-state{padding:28px 16px;text-align:center;color:var(--text-muted);font-size:13px;background:var(--panel);
+    border:1px solid var(--panel-border);border-radius:var(--radius);margin-bottom:14px;}
+  .add-item-row{padding:10px 16px;border-top:1px solid var(--panel-border);}
+  .add-item-btn{font-size:12.5px;color:var(--text-muted);background:none;border:none;cursor:pointer;
+    display:flex;align-items:center;gap:6px;padding:4px 0;}
+  .add-item-btn svg{width:13px;height:13px;}
+  .add-item-btn:hover{color:var(--text-primary);}
+
+  .add-entity-btn{font-size:13px;font-weight:500;color:var(--text-muted);background:#fff;
+    border:1px dashed var(--panel-border-hover);border-radius:var(--radius);padding:13px 18px;cursor:pointer;
+    width:100%;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .add-entity-btn svg{width:13px;height:13px;}
+  .add-entity-btn:hover{color:var(--text-primary);border-color:var(--text-muted);}
+
+  .footer-search-wrap{position:relative;margin:30px 0 14px;}
+  .footer-search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:15px;height:15px;
+    color:var(--text-muted);pointer-events:none;}
+  .footer-search-input{width:100%;padding:11px 14px 11px 38px;border-radius:var(--radius-pill);
+    border:1px solid var(--panel-border);background:#fff;color:var(--text-primary);font-size:13.5px;}
+  .footer-search-input::placeholder{color:var(--text-muted);}
+  .footer-search-input:focus{outline:2px solid var(--light-warn);outline-offset:1px;}
+  .search-results-panel{margin-bottom:14px;}
+  .search-empty{padding:14px;text-align:center;font-size:12.5px;color:var(--text-muted);margin-bottom:14px;}
+
+  .icon-btn.fav-btn:hover{color:var(--light-warn);}
+  .icon-btn.fav-btn.active{color:var(--light-warn);}
+  .icon-btn.fav-btn.active svg{fill:currentColor;}
+
+  .favorites-section{background:var(--panel);border:1px solid var(--panel-border);border-radius:var(--radius);
+    margin-bottom:16px;overflow:hidden;}
+  .favorites-header{display:flex;align-items:center;gap:9px;padding:13px 16px;cursor:pointer;user-select:none;}
+  .favorites-icon{width:16px;height:16px;color:var(--light-warn);flex-shrink:0;}
+  .favorites-title{font-weight:600;font-size:14px;flex:1;color:var(--text-primary);}
+  .favorites-chevron{transition:transform .15s ease;}
+  .favorites-section.collapsed .favorites-chevron{transform:rotate(-90deg);}
+  .favorites-section.collapsed .item-list{display:none;}
+  .favorites-section .item-list{border-top:1px solid var(--panel-border);}
+
+  .footer-actions{text-align:center;margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .btn-save{display:flex;align-items:center;gap:8px;padding:11px 22px;}
+  .save-icon{width:15px;height:15px;}
+  .btn-save.is-dirty{background:var(--light-warn);border-color:var(--light-warn);color:#fff;}
+  .footer-reset{font-size:11.5px;color:var(--text-muted);background:none;border:none;
+    cursor:pointer;opacity:.7;}
+  .footer-reset:hover{opacity:1;color:var(--text-primary);}
+
+  .loading{padding:70px 20px;text-align:center;color:var(--text-muted);font-size:13px;}
+
+  .modal-overlay{position:fixed;inset:0;background:rgba(24,24,22,.45);display:flex;align-items:center;
+    justify-content:center;padding:18px;z-index:50;}
+  .modal{background:#fff;border:1px solid var(--panel-border);border-radius:var(--radius);
+    width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:24px;
+    box-shadow:0 12px 32px rgba(20,20,16,0.14);}
+  .modal-title{font-family:var(--font-display);font-size:18px;font-weight:700;margin:0 0 18px;color:var(--text-primary);}
+  .field{margin-bottom:14px;}
+  .field-label{display:block;font-size:11px;letter-spacing:0.02em;
+    color:var(--text-muted);margin-bottom:6px;}
+  .field-input,.field-select,.field-textarea{width:100%;background:var(--bg-base);border:1px solid var(--panel-border);
+    border-radius:var(--radius-sm);padding:9px 11px;color:var(--text-primary);font-size:14px;}
+  .field-textarea{resize:vertical;min-height:48px;font-family:var(--font-body);}
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
+  .modal-actions{display:flex;justify-content:space-between;align-items:center;margin-top:20px;gap:10px;}
+  .modal-actions-right{display:flex;gap:8px;margin-left:auto;}
+  .btn{font-size:13px;font-weight:500;padding:9px 16px;border-radius:var(--radius-sm);border:1px solid var(--panel-border);
+    cursor:pointer;background:transparent;color:var(--text-primary);}
+  .btn-secondary:hover{background:var(--bg-base);}
+  .btn-primary{background:var(--text-primary);border-color:var(--text-primary);color:#fff;}
+  .btn-primary:hover{background:#34333A;}
+  .btn-danger{color:var(--light-danger);border-color:rgba(240,87,61,.35);background:transparent;}
+  .btn-danger:hover{background:rgba(240,87,61,.08);}
+
+  .toast{position:fixed;bottom:16px;right:16px;background:#fff;border:1px solid var(--panel-border);
+    color:var(--text-muted);font-size:11.5px;padding:8px 13px;border-radius:var(--radius-sm);
+    box-shadow:0 4px 14px rgba(20,20,16,0.1);
+    opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;pointer-events:none;z-index:60;}
+  .toast.show{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <div id="app"></div>
+  <div id="app-footer"></div>
+</div>
+<div id="modal-root"></div>
+<div id="toast" class="toast"></div>
+
+<script>
+const STORAGE_KEY = 'lifeadmin-data';
+let state = null;
+let collapsedSet = new Set();
+let filterMode = 'all';
+let idCounter = 0;
+let searchQuery = '';
+let favoritesCollapsed = false;
+const OVERVIEW_ID = '__overview__';
+const OVERVIEW_DAYS = 21;
+
+const ICONS = {
+  car: '<path d="M4 16l1.5-5.5A2 2 0 0 1 7.4 9h9.2a2 2 0 0 1 1.9 1.5L20 16"/><path d="M3 16h18v2.5A1.5 1.5 0 0 1 19.5 20h-1A1.5 1.5 0 0 1 17 18.5V18H7v.5A1.5 1.5 0 0 1 5.5 20h-1A1.5 1.5 0 0 1 3 18.5V16Z"/><circle cx="7.5" cy="16.5" r="1.4"/><circle cx="16.5" cy="16.5" r="1.4"/>',
+  home: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9.5a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5V10"/><path d="M10 20v-5h4v5"/>',
+  heart: '<path d="M12 19.5 4.6 12.6a4.6 4.6 0 0 1 6.5-6.5l.9.9.9-.9a4.6 4.6 0 0 1 6.5 6.5L12 19.5Z"/>',
+  coin: '<circle cx="12" cy="12" r="8.2"/><path d="M12 7.5v9M9.6 9.3c0-1 1-1.8 2.4-1.8s2.4.7 2.4 1.7c0 2.4-4.8 1-4.8 3.4 0 1 1 1.8 2.4 1.8s2.4-.8 2.4-1.8"/>',
+  idcard: '<rect x="3" y="6" width="18" height="13" rx="1.4"/><circle cx="8" cy="11.3" r="1.8"/><path d="M5.3 16c.4-1.5 1.6-2.3 2.7-2.3s2.3.8 2.7 2.3"/><path d="M13.5 10.5h5M13.5 13h5M13.5 15.5h3.2"/>',
+  paw: '<circle cx="7" cy="9" r="1.6"/><circle cx="11.2" cy="6.8" r="1.6"/><circle cx="15.4" cy="6.8" r="1.6"/><circle cx="19" cy="9" r="1.6"/><path d="M9 16.2c0-2.3 2-4.2 4-4.2s4 1.9 4 4.2-1.8 3.3-4 3.3-4-1-4-3.3Z"/>',
+  wifi: '<path d="M4.5 9.8a10.7 10.7 0 0 1 15 0"/><path d="M7.3 13a6.9 6.9 0 0 1 9.4 0"/><path d="M10.1 16.2a3.1 3.1 0 0 1 3.8 0"/><circle cx="12" cy="19" r="1"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/>',
+  child: '<circle cx="12" cy="7" r="3"/><path d="M7 21v-4.5A5 5 0 0 1 12 12a5 5 0 0 1 5 4.5V21"/>',
+  copy: '<rect x="3" y="7" width="13" height="13" rx="2"/><path d="M8 7V4.5A1.5 1.5 0 0 1 9.5 3h8A1.5 1.5 0 0 1 19 4.5v8a1.5 1.5 0 0 1-1.5 1.5H15"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  pencil: '<path d="M4 20l.9-3.6L16.4 5 19 7.6 7.6 19 4 20Z"/><path d="M14.5 6.9 17.1 9.5"/>',
+  trash: '<path d="M5 7h14"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"/><path d="M7 7l1 12.5A1.5 1.5 0 0 0 9.5 21h5a1.5 1.5 0 0 0 1.5-1.5L17 7"/><path d="M10 11v6M14 11v6"/>',
+  check: '<path d="M5 12.5 9.5 17 19 7"/>',
+  chevron: '<path d="M6 9l6 6 6-6"/>',
+  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/>',
+  star: '<path d="M12 3.5l2.5 5.6 6 .7-4.4 4.1 1.2 6-5.3-3-5.3 3 1.2-6L3.5 9.8l6-.7Z"/>',
+  save: '<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H16l3 3v12.5A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5V4.5Z"/><path d="M8 3v5h7V3"/><path d="M8 13.5h8v6.3H8z"/>',
+  dot: '<circle cx="12" cy="12" r="3"/>'
+};
+function svgIcon(name, cls){
+  return '<svg class="'+(cls||'')+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+(ICONS[name]||ICONS.dot)+'</svg>';
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function pad(n){ return n<10 ? '0'+n : ''+n; }
+function parseDate(s){ if(!s) return null; const p=s.split('-').map(Number); return new Date(p[0],p[1]-1,p[2]); }
+function formatISO(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function formatDisplay(s){ const d=parseDate(s); if(!d) return '—'; return pad(d.getDate())+'.'+pad(d.getMonth()+1)+'.'+d.getFullYear(); }
+function startOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function addMonths(s, n){ const d = parseDate(s) || startOfDay(new Date()); d.setMonth(d.getMonth()+n); return formatISO(d); }
+function diffDaysFromToday(s){ const d=parseDate(s); if(!d) return null; const t=startOfDay(new Date()); return Math.round((d-t)/86400000); }
+function computeStatus(it){
+  if(!it.dueDate) return 'none';
+  const diff = diffDaysFromToday(it.dueDate);
+  if(diff<0) return 'overdue';
+  if(diff<=30) return 'warning';
+  return 'ok';
+}
+function dayWord(n){ const a=Math.abs(n); if(a===1) return 'deň'; if(a>=2 && a<=4) return 'dni'; return 'dní'; }
+function relativeLabel(it){
+  if(!it.dueDate) return 'termín nenastavený';
+  const diff = diffDaysFromToday(it.dueDate);
+  if(diff===0) return 'dnes';
+  if(diff>0) return 'o '+diff+' '+dayWord(diff);
+  return 'po termíne, '+Math.abs(diff)+' '+dayWord(diff);
+}
+function statusSortKey(s){ return s==='overdue'?0 : s==='warning'?1 : s==='ok'?2 : 3; }
+function genId(prefix){ idCounter++; return prefix+'_'+Date.now().toString(36)+idCounter+Math.random().toString(36).slice(2,5); }
+
+const DEFAULT_ITEM_TEMPLATES = {
+  auto: [['STK a emisie',24],['Diaľničná známka',12],['PZP – povinné zmluvné poistenie',12],['Havarijné poistenie',12],['Servis a výmena oleja',12]],
+  domacnost: [['Poistenie nehnuteľnosti',12],['Daň z nehnuteľností',12],['Kontrola kotla',12],['Revízia elektrickej inštalácie',60]],
+  zdravie: [['Zubár – preventívna prehliadka',6],['Všeobecný lekár – prehliadka',12],['Očné vyšetrenie',24],['Gynekológ / urológ',12]],
+  deti: [['Pediater – preventívna prehliadka',12],['Zubár – preventívna prehliadka',6],['Povinné očkovanie',12],['Očné vyšetrenie',24],['Zápis do školy / škôlky',null],['Krúžky – platba',12]],
+  financie: [['Životné poistenie',12],['Daňové priznanie',12],['Úrazové poistenie',12]],
+  doklady: [['Občiansky preukaz',null],['Cestovný pas',null],['Vodičský preukaz',null]],
+  zvierata: [['Veterinárna kontrola',12],['Očkovanie',12],['Antiparazitická liečba',6]],
+  predplatne: [['Mobilná tarifa',12],['Energie – ročné vyúčtovanie',12],['Streamovacie predplatné',12]]
+};
+function itemsFromTemplate(category, entityId){
+  const tmpl = (category && category.itemTemplate) ? category.itemTemplate :
+    (DEFAULT_ITEM_TEMPLATES[category ? category.id : null] || []);
+  return tmpl.map(function(pair){
+    return {id:genId('i'), entityId:entityId, name:pair[0], dueDate:null, lastDone:null, intervalMonths:pair[1], notes:''};
+  });
+}
+function cloneTemplate(tmpl){
+  return (tmpl||[]).map(function(p){ return [p[0], p[1]]; });
+}
+
+function buildDefaultData(){
+  const categories = [
+    {id:'auto', name:'Auto', icon:'car', entityLabel:'Auto'},
+    {id:'domacnost', name:'Domácnosť', icon:'home', entityLabel:'Nehnuteľnosť'},
+    {id:'zdravie', name:'Zdravie', icon:'heart', entityLabel:'Osoba'},
+    {id:'deti', name:'Deti', icon:'child', entityLabel:'Dieťa'},
+    {id:'financie', name:'Financie', icon:'coin', entityLabel:'Skupina'},
+    {id:'doklady', name:'Osobné doklady', icon:'idcard', entityLabel:'Osoba'},
+    {id:'zvierata', name:'Domáce zvieratá', icon:'paw', entityLabel:'Zviera'},
+    {id:'predplatne', name:'Predplatné a účty', icon:'wifi', entityLabel:'Skupina'}
+  ];
+  categories.forEach(function(c){ c.itemTemplate = cloneTemplate(DEFAULT_ITEM_TEMPLATES[c.id]); });
+  const noDefaultEntity = ['zvierata','deti'];
+  const entities = [];
+  categories.forEach(function(c){ if(noDefaultEntity.indexOf(c.id)<0) entities.push({id:'e_'+c.id, categoryId:c.id, name:c.name}); });
+  let items = [];
+  const catById = {};
+  categories.forEach(function(c){ catById[c.id]=c; });
+  entities.forEach(function(ent){ items = items.concat(itemsFromTemplate(catById[ent.categoryId], ent.id)); });
+  return {categories:categories, entities:entities, items:items, activeCategoryId:'auto'};
+}
+
+function ensureNewCategories(state){
+  if(!state.categories.some(function(c){ return c.id==='deti'; })){
+    state.categories.push({id:'deti', name:'Deti', icon:'child', entityLabel:'Dieťa', itemTemplate: cloneTemplate(DEFAULT_ITEM_TEMPLATES.deti)});
+  }
+  state.categories.forEach(function(c){
+    if(!c.itemTemplate && DEFAULT_ITEM_TEMPLATES[c.id]) c.itemTemplate = cloneTemplate(DEFAULT_ITEM_TEMPLATES[c.id]);
+  });
+  return state;
+}
+
+function migrate(loaded){
+  if(loaded && Array.isArray(loaded.entities) && Array.isArray(loaded.categories) && Array.isArray(loaded.items)){
+    loaded.categories.forEach(function(c){ if(!c.entityLabel) c.entityLabel = c.name; });
+    if(!loaded.activeCategoryId || !loaded.categories.some(function(c){return c.id===loaded.activeCategoryId;})){
+      loaded.activeCategoryId = loaded.categories.length ? loaded.categories[0].id : null;
+    }
+    return ensureNewCategories(loaded);
+  }
+  if(loaded && Array.isArray(loaded.categories) && Array.isArray(loaded.items)){
+    const entities = loaded.categories.map(function(c){ return {id:'e_'+c.id, categoryId:c.id, name:c.name}; });
+    const items = loaded.items.map(function(i){
+      return {id:i.id, entityId:'e_'+i.categoryId, name:i.name, dueDate:i.dueDate, lastDone:i.lastDone, intervalMonths:i.intervalMonths, notes:i.notes};
+    });
+    const categories = loaded.categories.map(function(c){ return {id:c.id, name:c.name, icon:c.icon, entityLabel:c.name}; });
+    return ensureNewCategories({categories:categories, entities:entities, items:items, activeCategoryId: categories.length?categories[0].id:null});
+  }
+  return buildDefaultData();
+}
+
+async function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ state = migrate(JSON.parse(raw)); }
+    else { state = buildDefaultData(); }
+  }catch(e){
+    state = buildDefaultData();
+  }
+  state.activeCategoryId = OVERVIEW_ID;
+  await persist();
+  render();
+}
+
+let saveTimer=null;
+let isDirty=false;
+function scheduleSave(){
+  isDirty = true;
+  updateSaveButton();
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(persist, 200);
+}
+async function persist(manual){
+  if(saveTimer){ clearTimeout(saveTimer); saveTimer=null; }
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    isDirty = false;
+    updateSaveButton();
+    showToast(manual ? 'Dáta uložené' : 'Uložené');
+  }catch(e){
+    showToast('Chyba pri ukladaní');
+  }
+}
+function updateSaveButton(){
+  const btn = document.getElementById('manual-save-btn');
+  if(!btn) return;
+  btn.classList.toggle('is-dirty', isDirty);
+  btn.title = isDirty ? 'Sú tu neuložené zmeny – kliknutím uložíš ihneď' : 'Všetko je uložené';
+}
+
+let toastTimer=null;
+function showToast(text){
+  const t=document.getElementById('toast');
+  t.textContent=text;
+  t.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ t.classList.remove('show'); }, 1500);
+}
+
+function getCounts(){
+  let overdue=0, warning=0, ok=0, none=0;
+  state.items.forEach(function(it){
+    const s=computeStatus(it);
+    if(s==='overdue') overdue++;
+    else if(s==='warning') warning++;
+    else if(s==='ok') ok++;
+    else none++;
+  });
+  return {overdue:overdue, warning:warning, ok:ok, none:none};
+}
+
+function getCategoryIssueCount(categoryId){
+  const entIds = state.entities.filter(function(e){return e.categoryId===categoryId;}).map(function(e){return e.id;});
+  return state.items.filter(function(i){ return entIds.indexOf(i.entityId)>=0; })
+    .filter(function(i){ const s=computeStatus(i); return s==='overdue'||s==='warning'; }).length;
+}
+
+function isUrgent(it){
+  if(!it.dueDate) return false;
+  const d = diffDaysFromToday(it.dueDate);
+  return d!==null && d<=OVERVIEW_DAYS;
+}
+function getOverviewItems(){
+  return state.items.filter(isUrgent).slice().sort(function(a,b){
+    return diffDaysFromToday(a.dueDate)-diffDaysFromToday(b.dueDate);
+  });
+}
+function getItemContext(it){
+  const ent = state.entities.find(function(e){ return e.id===it.entityId; });
+  if(!ent) return '';
+  const cat = state.categories.find(function(c){ return c.id===ent.categoryId; });
+  return (cat?cat.name:'')+' · '+ent.name;
+}
+
+const MONTHS_GEN = ['januára','februára','marca','apríla','mája','júna','júla','augusta','septembra','októbra','novembra','decembra'];
+function renderHeader(){
+  const today=new Date();
+  const dateStr = today.getDate()+'. '+MONTHS_GEN[today.getMonth()]+' '+today.getFullYear();
+  return '<div class="header">'+
+    '<div><h1 class="header-title">Môj prehľad</h1>'+
+    '<div class="header-sub">Osobný register termínov</div></div>'+
+    '<div class="header-date">'+dateStr+'</div></div>';
+}
+
+function renderSummary(){
+  const c=getCounts();
+  const cards=[
+    {count:c.overdue, label:'Po termíne', lit:'lit-danger', pulse:c.overdue>0},
+    {count:c.warning, label:'Blíži sa termín', lit:'lit-warn', pulse:false},
+    {count:c.ok, label:'V poriadku', lit:'lit-ok', pulse:false},
+    {count:c.none, label:'Bez termínu', lit:'', pulse:false}
+  ];
+  return '<div class="summary">'+cards.map(function(card){
+    return '<div class="summary-card">'+
+      '<div class="summary-light '+(card.count>0?card.lit:'')+' '+(card.pulse?'pulse':'')+'"></div>'+
+      '<div><div class="summary-count">'+card.count+'</div>'+
+      '<div class="summary-label">'+card.label+'</div></div></div>';
+  }).join('')+'</div>';
+}
+
+function renderCategoryTabs(){
+  const overviewActive = state.activeCategoryId===OVERVIEW_ID;
+  const overviewCount = getOverviewItems().length;
+  return '<div class="tabs-row">'+
+  '<button class="tab-btn tab-overview '+(overviewActive?'active':'')+'" data-action="select-category" data-category="'+OVERVIEW_ID+'" title="Prehľad">'+
+    svgIcon('clock','tab-icon')+
+    '<span class="tab-label">Prehľad</span>'+
+    (overviewCount>0 ? '<span class="tab-badge">'+overviewCount+'</span>' : '')+
+    '</button>'+
+  state.categories.map(function(cat){
+    const issues = getCategoryIssueCount(cat.id);
+    const active = cat.id===state.activeCategoryId;
+    return '<button class="tab-btn '+(active?'active':'')+'" data-action="select-category" data-category="'+cat.id+'" title="'+escapeHtml(cat.name)+'">'+
+      svgIcon(cat.icon,'tab-icon')+
+      '<span class="tab-label">'+escapeHtml(cat.name)+'</span>'+
+      (issues>0 ? '<span class="tab-badge">'+issues+'</span>' : '')+
+      '</button>';
+  }).join('')+
+  '<button class="tab-btn tab-add" data-action="open-add-category" title="Nová kategória">'+svgIcon('plus')+'</button>'+
+  '</div>';
+}
+
+function renderFilter(){
+  return '<div class="filter-row">'+
+    '<button class="filter-btn '+(filterMode==='all'?'active':'')+'" data-action="set-filter" data-filter="all">Všetko</button>'+
+    '<button class="filter-btn '+(filterMode==='attention'?'active':'')+'" data-action="set-filter" data-filter="attention">Vyžaduje pozornosť</button>'+
+    '</div>';
+}
+
+function renderItemRow(it, contextLabel){
+  const status=computeStatus(it);
+  const due = it.dueDate ? formatDisplay(it.dueDate) : '—';
+  const rel = relativeLabel(it);
+  return '<div class="item-row">'+
+    '<div class="item-light s-'+status+'"></div>'+
+    '<div class="item-info">'+
+      '<div class="item-name">'+escapeHtml(it.name)+'</div>'+
+      (contextLabel ? '<div class="item-context">'+escapeHtml(contextLabel)+'</div>' : '')+
+      (it.notes ? '<div class="item-notes">'+escapeHtml(it.notes)+'</div>' : '')+
+    '</div>'+
+    '<div class="item-due s-'+status+'"><div>'+due+'</div><div class="item-due-rel">'+rel+'</div></div>'+
+    '<div class="item-actions">'+
+      '<button class="icon-btn fav-btn '+(it.favorite?'active':'')+'" data-action="toggle-favorite" data-item="'+it.id+'" title="'+(it.favorite?'Odobrať z obľúbených':'Pridať do obľúbených')+'">'+svgIcon('star')+'</button>'+
+      '<button class="icon-btn done-btn" data-action="mark-done" data-item="'+it.id+'" title="Označiť ako hotové">'+svgIcon('check')+'</button>'+
+      '<button class="icon-btn" data-action="open-edit-item" data-item="'+it.id+'" title="Upraviť">'+svgIcon('pencil')+'</button>'+
+      '<button class="icon-btn delete-btn" data-action="delete-item" data-item="'+it.id+'" title="Vymazať">'+svgIcon('trash')+'</button>'+
+    '</div></div>';
+}
+
+function renderEntity(ent){
+  let allItems = state.items.filter(function(i){ return i.entityId===ent.id; });
+  let items = allItems;
+  if(filterMode==='attention'){
+    items = items.filter(function(i){ const s=computeStatus(i); return s==='overdue'||s==='warning'; });
+  }
+  items = items.slice().sort(function(a,b){ return statusSortKey(computeStatus(a))-statusSortKey(computeStatus(b)); });
+  const issues = allItems.filter(function(i){ const s=computeStatus(i); return s==='overdue'||s==='warning'; }).length;
+  const collapsed = collapsedSet.has(ent.id);
+  const rowsHtml = items.length ? items.map(function(i){ return renderItemRow(i); }).join('') :
+    '<div class="empty-row">'+(filterMode==='attention' ? 'Žiadne položky nevyžadujú pozornosť' : 'Zatiaľ žiadne položky')+'</div>';
+  return '<div class="panel '+(collapsed?'collapsed':'')+'">'+
+    '<div class="panel-header" data-action="toggle-collapse" data-entity="'+ent.id+'">'+
+      '<div class="panel-name">'+escapeHtml(ent.name)+'</div>'+
+      '<div class="panel-badge '+(issues>0?'has-issues':'')+'">'+(issues>0?issues:allItems.length)+'</div>'+
+      '<button class="icon-btn panel-rename" data-action="rename-entity" data-entity="'+ent.id+'" title="Premenovať">'+svgIcon('pencil')+'</button>'+
+      '<button class="icon-btn" data-action="duplicate-entity" data-entity="'+ent.id+'" title="Kopírovať">'+svgIcon('copy')+'</button>'+
+      '<button class="icon-btn panel-delete" data-action="delete-entity" data-entity="'+ent.id+'" title="Vymazať">'+svgIcon('trash')+'</button>'+
+      '<div class="panel-chevron">'+svgIcon('chevron')+'</div>'+
+    '</div>'+
+    '<div class="item-list">'+rowsHtml+
+      '<div class="add-item-row"><button class="add-item-btn" data-action="open-add-item" data-entity="'+ent.id+'">'+svgIcon('plus')+' Pridať položku</button></div>'+
+    '</div></div>';
+}
+
+function renderOverviewContent(){
+  const items = getOverviewItems();
+  let body;
+  if(!items.length){
+    body = '<div class="empty-state">Žiadne úlohy s termínom do 3 týždňov. Všetko je pod kontrolou.</div>';
+  } else {
+    const order = [];
+    const groups = {};
+    items.forEach(function(it){
+      const ent = state.entities.find(function(e){ return e.id===it.entityId; });
+      const catId = ent ? ent.categoryId : '__none__';
+      if(!groups[catId]){
+        groups[catId] = { category: ent ? state.categories.find(function(c){ return c.id===catId; }) : null, items: [] };
+        order.push(catId);
+      }
+      groups[catId].items.push(it);
+    });
+    const bubbles = order.map(function(catId){
+      const g = groups[catId];
+      const catName = g.category ? g.category.name : 'Iné';
+      const catIcon = g.category ? g.category.icon : 'dot';
+      const rows = g.items.map(function(it){
+        const ent = state.entities.find(function(e){ return e.id===it.entityId; });
+        return renderItemRow(it, ent ? ent.name : '');
+      }).join('');
+      return '<div class="panel overview-bubble">'+
+        '<div class="overview-bubble-header">'+
+          svgIcon(catIcon,'overview-bubble-icon')+
+          '<div class="overview-bubble-title">'+escapeHtml(catName)+'</div>'+
+          '<div class="panel-badge has-issues">'+g.items.length+'</div>'+
+        '</div>'+
+        '<div class="item-list">'+rows+'</div>'+
+      '</div>';
+    }).join('');
+    body = '<div class="entities-grid">'+bubbles+'</div>';
+  }
+  return '<div class="category-content">'+
+    '<div class="category-toolbar"><div>'+
+      '<div class="category-toolbar-title">Najbližšie termíny</div>'+
+      '<div class="category-toolbar-sub">Úlohy s termínom do 3 týždňov, vrátane tých po splatnosti</div>'+
+    '</div></div>'+
+    body+
+  '</div>';
+}
+
+function renderActiveCategoryContent(){
+  const cat = state.categories.find(function(c){ return c.id===state.activeCategoryId; });
+  if(!cat){
+    return '<div class="empty-state">Žiadna kategória nie je vybraná. Vytvor novú pomocou tlačidla „+“ v paneli vyššie.</div>';
+  }
+  const entities = state.entities.filter(function(e){ return e.categoryId===cat.id; });
+  const body = entities.length ?
+    '<div class="entities-grid">'+entities.map(renderEntity).join('')+'</div>' :
+    '<div class="empty-state">Zatiaľ žiadne záznamy v tejto kategórii. Pridaj prvý nižšie.</div>';
+  return '<div class="category-content">'+
+    '<div class="category-toolbar">'+
+      '<div class="category-toolbar-title">'+escapeHtml(cat.name)+'</div>'+
+      '<div class="category-toolbar-actions">'+
+        '<button class="icon-btn" data-action="edit-category" data-category="'+cat.id+'" title="Upraviť kategóriu">'+svgIcon('pencil')+'</button>'+
+        '<button class="icon-btn" data-action="duplicate-category" data-category="'+cat.id+'" title="Kopírovať kategóriu">'+svgIcon('copy')+'</button>'+
+        '<button class="icon-btn" data-action="delete-category" data-category="'+cat.id+'" title="Vymazať kategóriu">'+svgIcon('trash')+'</button>'+
+      '</div>'+
+    '</div>'+
+    renderFilter()+
+    body+
+    '<button class="add-entity-btn" data-action="open-add-entity" data-category="'+cat.id+'">'+svgIcon('plus')+' Pridať: '+escapeHtml(cat.entityLabel||cat.name)+'</button>'+
+  '</div>';
+}
+
+function getItemFullContext(it){
+  const ent = state.entities.find(function(e){ return e.id===it.entityId; });
+  const cat = ent ? state.categories.find(function(c){ return c.id===ent.categoryId; }) : null;
+  return (cat?cat.name:'')+(ent?' · '+ent.name:'');
+}
+
+function renderSearchResults(){
+  const q = searchQuery.trim().toLowerCase();
+  if(!q) return '';
+  const matches = state.items.filter(function(it){
+    return it.name.toLowerCase().indexOf(q)>=0 || (it.notes && it.notes.toLowerCase().indexOf(q)>=0);
+  });
+  if(!matches.length) return '<div class="search-empty">Žiadne výsledky pre „'+escapeHtml(searchQuery)+'“</div>';
+  const rows = matches.map(function(it){ return renderItemRow(it, getItemFullContext(it)); }).join('');
+  return '<div class="panel search-results-panel"><div class="item-list">'+rows+'</div></div>';
+}
+
+function renderFavorites(){
+  const favs = state.items.filter(function(it){ return it.favorite; });
+  if(!favs.length) return '';
+  const rows = favs.map(function(it){ return renderItemRow(it, getItemFullContext(it)); }).join('');
+  return '<div class="favorites-section '+(favoritesCollapsed?'collapsed':'')+'">'+
+    '<div class="favorites-header" data-action="toggle-favorites-collapse">'+
+      svgIcon('star','favorites-icon')+
+      '<div class="favorites-title">Obľúbené</div>'+
+      '<div class="panel-badge">'+favs.length+'</div>'+
+      '<div class="panel-chevron favorites-chevron">'+svgIcon('chevron')+'</div>'+
+    '</div>'+
+    '<div class="item-list">'+rows+'</div>'+
+  '</div>';
+}
+
+function renderFooter(){
+  return '<div class="footer-search-wrap">'+
+      svgIcon('search','footer-search-icon')+
+      '<input id="footer-search" class="footer-search-input" type="text" placeholder="Hľadať položku vo všetkých kategóriách…" value="'+escapeHtml(searchQuery)+'">'+
+    '</div>'+
+    '<div id="search-results">'+renderSearchResults()+'</div>'+
+    renderFavorites()+
+    '<div class="footer-actions">'+
+      '<button class="btn btn-save '+(isDirty?'is-dirty':'')+'" id="manual-save-btn" data-action="manual-save" title="Uložiť teraz">'+
+        svgIcon('save','save-icon')+'<span>Uložiť dáta</span></button>'+
+      '<button class="footer-reset" data-action="reset-all">Obnoviť na pôvodné nastavenia</button>'+
+    '</div>';
+}
+
+function render(){
+  const content = state.activeCategoryId===OVERVIEW_ID ? renderOverviewContent() : renderActiveCategoryContent();
+  document.getElementById('app').innerHTML = renderHeader()+renderSummary()+renderCategoryTabs()+content;
+  document.getElementById('app-footer').innerHTML = renderFooter();
+  const searchInput = document.getElementById('footer-search');
+  if(searchInput){
+    searchInput.oninput = function(e){
+      searchQuery = e.target.value;
+      document.getElementById('search-results').innerHTML = renderSearchResults();
+    };
+  }
+}
+
+function closeModal(){ document.getElementById('modal-root').innerHTML=''; }
+
+function openConfirm(message, onConfirm){
+  const root=document.getElementById('modal-root');
+  root.innerHTML = '<div class="modal-overlay"><div class="modal" role="dialog">'+
+    '<p style="font-size:14px;line-height:1.5;margin:0 0 18px;">'+escapeHtml(message)+'</p>'+
+    '<div class="modal-actions"><button class="btn btn-secondary" id="confirm-cancel">Zrušiť</button>'+
+    '<div class="modal-actions-right"><button class="btn btn-danger" id="confirm-ok">Vymazať</button></div></div>'+
+    '</div></div>';
+  root.querySelector('#confirm-cancel').onclick = closeModal;
+  root.querySelector('#confirm-ok').onclick = function(){ onConfirm(); closeModal(); };
+  root.querySelector('.modal-overlay').addEventListener('click', function(e){
+    if(e.target.classList.contains('modal-overlay')) closeModal();
+  });
+}
+
+function openItemModal(existing, defaultEntityId){
+  const isNew = !existing;
+  const draft = existing ? Object.assign({}, existing) :
+    {id:null, entityId: defaultEntityId || (state.entities[0] ? state.entities[0].id : null), name:'', dueDate:null, lastDone:null, intervalMonths:null, notes:''};
+  const root=document.getElementById('modal-root');
+  const intervalOpts = [
+    [null,'Bez opakovania'],[1,'Každý mesiac'],[3,'Každé 3 mesiace'],
+    [6,'Každých 6 mesiacov'],[12,'Každý rok'],[24,'Každé 2 roky'],[60,'Každých 5 rokov']
+  ];
+  root.innerHTML = '<div class="modal-overlay"><div class="modal" role="dialog">'+
+    '<h2 class="modal-title">'+(isNew?'Nová položka':'Upraviť položku')+'</h2>'+
+    '<div class="field"><label class="field-label">Názov</label>'+
+      '<input class="field-input" id="f-name" type="text" value="'+escapeHtml(draft.name)+'" placeholder="napr. STK a emisie"></div>'+
+    '<div class="field"><label class="field-label">Skupina</label><select class="field-select" id="f-entity">'+
+      state.entities.map(function(ent){
+        const cat = state.categories.find(function(c){ return c.id===ent.categoryId; });
+        const label = (cat?cat.name:'')+' — '+ent.name;
+        return '<option value="'+ent.id+'" '+(ent.id===draft.entityId?'selected':'')+'>'+escapeHtml(label)+'</option>';
+      }).join('')+
+    '</select></div>'+
+    '<div class="field-row">'+
+      '<div class="field"><label class="field-label">Termín</label>'+
+        '<input class="field-input" id="f-due" type="date" value="'+(draft.dueDate||'')+'"></div>'+
+      '<div class="field"><label class="field-label">Opakovanie</label><select class="field-select" id="f-interval">'+
+        intervalOpts.map(function(o){ return '<option value="'+(o[0]||'')+'" '+(draft.intervalMonths===o[0]?'selected':'')+'>'+o[1]+'</option>'; }).join('')+
+      '</select></div>'+
+    '</div>'+
+    '<div class="field"><label class="field-label">Poznámka</label>'+
+      '<textarea class="field-textarea" id="f-notes" placeholder="nepovinné">'+escapeHtml(draft.notes||'')+'</textarea></div>'+
+    '<div class="modal-actions">'+
+      (!isNew ? '<button class="btn btn-danger" id="item-delete">Vymazať</button>' : '<span></span>')+
+      '<div class="modal-actions-right"><button class="btn btn-secondary" id="item-cancel">Zrušiť</button>'+
+      '<button class="btn btn-primary" id="item-save">Uložiť</button></div>'+
+    '</div></div></div>';
+  root.querySelector('#item-cancel').onclick = closeModal;
+  root.querySelector('.modal-overlay').addEventListener('click', function(e){
+    if(e.target.classList.contains('modal-overlay')) closeModal();
+  });
+  if(!isNew){
+    root.querySelector('#item-delete').onclick = function(){
+      closeModal();
+      openConfirm('Naozaj chceš vymazať položku „'+existing.name+'“?', function(){
+        state.items = state.items.filter(function(i){ return i.id!==existing.id; });
+        render(); scheduleSave();
+      });
+    };
+  }
+  root.querySelector('#item-save').onclick = function(){
+    const name = root.querySelector('#f-name').value.trim();
+    if(!name){ root.querySelector('#f-name').focus(); return; }
+    const entityId = root.querySelector('#f-entity').value;
+    const dueVal = root.querySelector('#f-due').value;
+    const intervalVal = root.querySelector('#f-interval').value;
+    const notes = root.querySelector('#f-notes').value.trim();
+    const payload = {
+      name: name, entityId: entityId, dueDate: dueVal || null,
+      intervalMonths: intervalVal ? Number(intervalVal) : null,
+      notes: notes, lastDone: draft.lastDone || null
+    };
+    if(isNew){ payload.id = genId('i'); state.items.push(payload); }
+    else { Object.assign(existing, payload); }
+    closeModal(); render(); scheduleSave();
+  };
+  setTimeout(function(){ const el=root.querySelector('#f-name'); if(el) el.focus(); }, 0);
+}
+
+function getEntityPlaceholder(cat){
+  const map = {auto:'napr. Škoda Octavia', domacnost:'napr. Byt Ružinov', zdravie:'napr. Manželka', doklady:'napr. Manžel', zvierata:'napr. Rex', deti:'napr. Janko'};
+  return map[cat.id] || ('napr. '+(cat.entityLabel||cat.name)+' 2');
+}
+
+function openAddEntityModal(categoryId){
+  const cat = state.categories.find(function(c){ return c.id===categoryId; });
+  if(!cat) return;
+  const root=document.getElementById('modal-root');
+  root.innerHTML = '<div class="modal-overlay"><div class="modal" role="dialog">'+
+    '<h2 class="modal-title">Pridať: '+escapeHtml(cat.entityLabel||cat.name)+'</h2>'+
+    '<div class="field"><label class="field-label">Názov</label>'+
+      '<input class="field-input" id="e-name" type="text" placeholder="'+escapeHtml(getEntityPlaceholder(cat))+'"></div>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-secondary" id="e-cancel">Zrušiť</button>'+
+      '<button class="btn btn-primary" id="e-save">Uložiť</button></div></div>'+
+    '</div></div>';
+  root.querySelector('#e-cancel').onclick = closeModal;
+  root.querySelector('.modal-overlay').addEventListener('click', function(e){
+    if(e.target.classList.contains('modal-overlay')) closeModal();
+  });
+  root.querySelector('#e-save').onclick = function(){
+    const val = root.querySelector('#e-name').value.trim();
+    const name = val || (cat.entityLabel||cat.name);
+    const newEntity = {id:genId('e'), categoryId:categoryId, name:name};
+    state.entities.push(newEntity);
+    const defaults = itemsFromTemplate(cat, newEntity.id);
+    if(defaults.length) state.items = state.items.concat(defaults);
+    closeModal(); render(); scheduleSave();
+  };
+  setTimeout(function(){ root.querySelector('#e-name').focus(); }, 0);
+}
+
+function openRenameModal(entity){
+  const root=document.getElementById('modal-root');
+  root.innerHTML = '<div class="modal-overlay"><div class="modal" role="dialog">'+
+    '<h2 class="modal-title">Premenovať</h2>'+
+    '<div class="field"><label class="field-label">Názov</label>'+
+      '<input class="field-input" id="r-name" type="text" value="'+escapeHtml(entity.name)+'"></div>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-secondary" id="r-cancel">Zrušiť</button>'+
+      '<button class="btn btn-primary" id="r-save">Uložiť</button></div></div>'+
+    '</div></div>';
+  root.querySelector('#r-cancel').onclick = closeModal;
+  root.querySelector('.modal-overlay').addEventListener('click', function(e){
+    if(e.target.classList.contains('modal-overlay')) closeModal();
+  });
+  root.querySelector('#r-save').onclick = function(){
+    const val = root.querySelector('#r-name').value.trim();
+    if(val) entity.name = val;
+    closeModal(); render(); scheduleSave();
+  };
+  setTimeout(function(){ const el=root.querySelector('#r-name'); el.focus(); el.select(); }, 0);
+}
+
+function duplicateEntity(entityId){
+  const ent = state.entities.find(function(e){ return e.id===entityId; });
+  if(!ent) return;
+  const newEntity = {id:genId('e'), categoryId:ent.categoryId, name:ent.name+' (kópia)'};
+  state.entities.push(newEntity);
+  const itemsToCopy = state.items.filter(function(i){ return i.entityId===entityId; });
+  const copiedItems = itemsToCopy.map(function(i){
+    return {id:genId('i'), entityId:newEntity.id, name:i.name, dueDate:i.dueDate, lastDone:i.lastDone, intervalMonths:i.intervalMonths, notes:i.notes};
+  });
+  state.items = state.items.concat(copiedItems);
+  render(); scheduleSave();
+  showToast('Záznam skopírovaný');
+}
+
+function openCategoryModal(existingCat){
+  const isEdit = !!existingCat;
+  const root=document.getElementById('modal-root');
+  const iconOptions = ['car','home','heart','child','coin','idcard','paw','wifi'];
+  const labels = {car:'Auto',home:'Domácnosť',heart:'Zdravie',child:'Deti',coin:'Financie',idcard:'Doklady',paw:'Zvieratá',wifi:'Predplatné'};
+  root.innerHTML = '<div class="modal-overlay"><div class="modal" role="dialog">'+
+    '<h2 class="modal-title">'+(isEdit?'Upraviť kategóriu':'Nová kategória')+'</h2>'+
+    '<div class="field"><label class="field-label">Názov kategórie</label>'+
+      '<input class="field-input" id="c-name" type="text" value="'+(isEdit?escapeHtml(existingCat.name):'')+'" placeholder="napr. Práca"></div>'+
+    '<div class="field"><label class="field-label">Ikona</label><select class="field-select" id="c-icon">'+
+      iconOptions.map(function(i){ return '<option value="'+i+'" '+(isEdit&&existingCat.icon===i?'selected':'')+'>'+labels[i]+'</option>'; }).join('')+
+    '</select></div>'+
+    '<div class="field"><label class="field-label">Názov jednotlivého záznamu</label>'+
+      '<input class="field-input" id="c-entity-label" type="text" value="'+(isEdit?escapeHtml(existingCat.entityLabel||''):'')+'" placeholder="napr. Projekt, Zmluva"></div>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-secondary" id="cat-cancel">Zrušiť</button>'+
+      '<button class="btn btn-primary" id="cat-save">Uložiť</button></div></div>'+
+    '</div></div>';
+  root.querySelector('#cat-cancel').onclick = closeModal;
+  root.querySelector('.modal-overlay').addEventListener('click', function(e){
+    if(e.target.classList.contains('modal-overlay')) closeModal();
+  });
+  root.querySelector('#cat-save').onclick = function(){
+    const name = root.querySelector('#c-name').value.trim();
+    if(!name){ root.querySelector('#c-name').focus(); return; }
+    const icon = root.querySelector('#c-icon').value;
+    const entityLabel = root.querySelector('#c-entity-label').value.trim() || name;
+    if(isEdit){
+      existingCat.name = name; existingCat.icon = icon; existingCat.entityLabel = entityLabel;
+    } else {
+      const newCat = {id:genId('c'), name:name, icon:icon, entityLabel:entityLabel, itemTemplate:[]};
+      state.categories.push(newCat);
+      state.activeCategoryId = newCat.id;
+    }
+    closeModal(); render(); scheduleSave();
+  };
+  setTimeout(function(){ root.querySelector('#c-name').focus(); }, 0);
+}
+
+function duplicateCategory(categoryId){
+  const cat = state.categories.find(function(c){ return c.id===categoryId; });
+  if(!cat) return;
+  const newCat = {
+    id: genId('c'),
+    name: cat.name+' (kópia)',
+    icon: cat.icon,
+    entityLabel: cat.entityLabel,
+    itemTemplate: cloneTemplate(cat.itemTemplate && cat.itemTemplate.length ? cat.itemTemplate : DEFAULT_ITEM_TEMPLATES[cat.id])
+  };
+  state.categories.push(newCat);
+  state.activeCategoryId = newCat.id;
+  render(); scheduleSave();
+  showToast('Kategória skopírovaná');
+}
+
+function markDone(id){
+  const it = state.items.find(function(i){ return i.id===id; });
+  if(!it) return;
+  const today = formatISO(startOfDay(new Date()));
+  it.lastDone = today;
+  it.dueDate = it.intervalMonths ? addMonths(today, it.intervalMonths) : null;
+  render(); scheduleSave();
+}
+
+function onAppClick(e){
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const action = el.dataset.action;
+  if(action==='select-category'){
+    state.activeCategoryId = el.dataset.category;
+    render(); scheduleSave();
+  } else if(action==='toggle-collapse'){
+    const id = el.dataset.entity;
+    if(collapsedSet.has(id)) collapsedSet.delete(id); else collapsedSet.add(id);
+    render();
+  } else if(action==='set-filter'){
+    filterMode = el.dataset.filter; render();
+  } else if(action==='open-add-item'){
+    openItemModal(null, el.dataset.entity);
+  } else if(action==='open-edit-item'){
+    const it = state.items.find(function(i){ return i.id===el.dataset.item; });
+    openItemModal(it);
+  } else if(action==='mark-done'){
+    markDone(el.dataset.item);
+  } else if(action==='toggle-favorite'){
+    const it = state.items.find(function(i){ return i.id===el.dataset.item; });
+    if(it){ it.favorite = !it.favorite; render(); scheduleSave(); }
+  } else if(action==='toggle-favorites-collapse'){
+    favoritesCollapsed = !favoritesCollapsed; render();
+  } else if(action==='delete-item'){
+    const it = state.items.find(function(i){ return i.id===el.dataset.item; });
+    openConfirm('Naozaj chceš vymazať položku „'+(it?it.name:'')+'“?', function(){
+      state.items = state.items.filter(function(i){ return i.id!==el.dataset.item; });
+      render(); scheduleSave();
+    });
+  } else if(action==='rename-entity'){
+    const ent = state.entities.find(function(en){ return en.id===el.dataset.entity; });
+    if(ent) openRenameModal(ent);
+  } else if(action==='duplicate-entity'){
+    duplicateEntity(el.dataset.entity);
+  } else if(action==='delete-entity'){
+    const entId = el.dataset.entity;
+    const ent = state.entities.find(function(en){ return en.id===entId; });
+    const count = state.items.filter(function(i){ return i.entityId===entId; }).length;
+    const msg = count>0 ?
+      'Záznam „'+(ent?ent.name:'')+'“ obsahuje '+count+' položiek. Vymazaním sa vymažú aj všetky jeho položky. Naozaj pokračovať?' :
+      'Naozaj chceš vymazať záznam „'+(ent?ent.name:'')+'“?';
+    openConfirm(msg, function(){
+      state.entities = state.entities.filter(function(en){ return en.id!==entId; });
+      state.items = state.items.filter(function(i){ return i.entityId!==entId; });
+      render(); scheduleSave();
+    });
+  } else if(action==='open-add-entity'){
+    openAddEntityModal(el.dataset.category);
+  } else if(action==='edit-category'){
+    const cat = state.categories.find(function(c){ return c.id===el.dataset.category; });
+    if(cat) openCategoryModal(cat);
+  } else if(action==='duplicate-category'){
+    duplicateCategory(el.dataset.category);
+  } else if(action==='delete-category'){
+    const id = el.dataset.category;
+    const cat = state.categories.find(function(c){ return c.id===id; });
+    const entIds = state.entities.filter(function(en){ return en.categoryId===id; }).map(function(en){ return en.id; });
+    const itemCount = state.items.filter(function(i){ return entIds.indexOf(i.entityId)>=0; }).length;
+    const msg = (entIds.length>0 || itemCount>0) ?
+      'Kategória „'+(cat?cat.name:'')+'“ obsahuje '+entIds.length+' záznamov a '+itemCount+' položiek. Vymazaním kategórie sa vymaže všetko v nej. Naozaj pokračovať?' :
+      'Naozaj chceš vymazať túto kategóriu?';
+    openConfirm(msg, function(){
+      state.categories = state.categories.filter(function(c){ return c.id!==id; });
+      state.entities = state.entities.filter(function(en){ return en.categoryId!==id; });
+      state.items = state.items.filter(function(i){ return entIds.indexOf(i.entityId)<0; });
+      if(state.activeCategoryId===id){ state.activeCategoryId = state.categories.length ? state.categories[0].id : null; }
+      render(); scheduleSave();
+    });
+  } else if(action==='open-add-category'){
+    openCategoryModal();
+  } else if(action==='manual-save'){
+    persist(true);
+  } else if(action==='reset-all'){
+    openConfirm('Týmto sa vymažú všetky tvoje dáta a obnoví sa pôvodný zoznam. Naozaj pokračovať?', function(){
+      state = buildDefaultData();
+      collapsedSet = new Set();
+      filterMode = 'all';
+      render(); scheduleSave();
+    });
+  }
+}
+
+async function init(){
+  document.getElementById('app').innerHTML = '<div class="loading">Načítavam…</div>';
+  document.querySelector('.app-shell').addEventListener('click', onAppClick);
+  await loadData();
+}
+init();
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js');
+    });
+  }
+</script>
+</body>
+</html>
