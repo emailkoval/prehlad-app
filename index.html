@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Môj prehľad</title>
+<title>Keevo</title>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Prehľad">
+<meta name="apple-mobile-web-app-title" content="Keevo">
 <meta name="theme-color" content="#18181B">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -192,12 +192,38 @@
   .favorites-section .item-list{border-top:1px solid var(--panel-border);}
 
   .footer-actions{text-align:center;margin-top:24px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .footer-sync-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
   .btn-save{display:flex;align-items:center;gap:8px;padding:11px 22px;}
   .save-icon{width:15px;height:15px;}
   .btn-save.is-dirty{background:var(--light-warn);border-color:var(--light-warn);color:#fff;}
+  .btn-sync{display:flex;align-items:center;gap:7px;padding:9px 16px;font-size:13px;font-weight:500;
+    border-radius:var(--radius-sm);border:1px solid var(--panel-border);background:#fff;
+    color:var(--text-primary);cursor:pointer;}
+  .btn-sync svg{width:15px;height:15px;}
+  .btn-sync:hover{border-color:var(--panel-border-hover);background:var(--bg-base);}
   .footer-reset{font-size:11.5px;color:var(--text-muted);background:none;border:none;
     cursor:pointer;opacity:.7;}
   .footer-reset:hover{opacity:1;color:var(--text-primary);}
+
+  .qr-modal-body{display:flex;flex-direction:column;align-items:center;gap:16px;padding:8px 0;}
+  .qr-canvas-wrap{background:#fff;border:1px solid var(--panel-border);border-radius:var(--radius);
+    padding:16px;display:flex;align-items:center;justify-content:center;}
+  .qr-canvas-wrap canvas{display:block;}
+  .qr-hint{font-size:12.5px;color:var(--text-muted);text-align:center;line-height:1.5;}
+  .qr-hint strong{color:var(--text-primary);}
+  .import-drop{border:2px dashed var(--panel-border);border-radius:var(--radius);padding:24px;
+    text-align:center;cursor:pointer;transition:border-color .15s;}
+  .import-drop:hover{border-color:var(--panel-border-hover);}
+  .import-drop svg{width:28px;height:28px;color:var(--text-muted);margin-bottom:8px;}
+  .import-drop-label{font-size:13px;color:var(--text-muted);}
+  .import-drop-sub{font-size:11.5px;color:var(--text-muted);margin-top:4px;opacity:.7;}
+  .import-merge-opts{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+  .import-opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--panel-border);
+    border-radius:var(--radius-sm);cursor:pointer;background:#fff;}
+  .import-opt:hover{border-color:var(--panel-border-hover);}
+  .import-opt input[type=radio]{margin-top:2px;flex-shrink:0;accent-color:var(--text-primary);}
+  .import-opt-label{font-size:13px;font-weight:500;color:var(--text-primary);}
+  .import-opt-desc{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
 
   .loading{padding:70px 20px;text-align:center;color:var(--text-muted);font-size:13px;}
 
@@ -231,6 +257,7 @@
     opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;pointer-events:none;z-index:60;}
   .toast.show{opacity:1;transform:translateY(0);}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 <div class="app-shell">
@@ -270,6 +297,9 @@ const ICONS = {
   search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.8-4.8"/>',
   star: '<path d="M12 3.5l2.5 5.6 6 .7-4.4 4.1 1.2 6-5.3-3-5.3 3 1.2-6L3.5 9.8l6-.7Z"/>',
   save: '<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H16l3 3v12.5A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5V4.5Z"/><path d="M8 3v5h7V3"/><path d="M8 13.5h8v6.3H8z"/>',
+  download: '<path d="M12 3v11m0 0-3.5-3.5M12 14l3.5-3.5"/><path d="M3 17v1.5A1.5 1.5 0 0 0 4.5 20h15a1.5 1.5 0 0 0 1.5-1.5V17"/>',
+  upload: '<path d="M12 14V3m0 0L8.5 6.5M12 3l3.5 3.5"/><path d="M3 17v1.5A1.5 1.5 0 0 0 4.5 20h15a1.5 1.5 0 0 0 1.5-1.5V17"/>',
+  qr: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="5" y="5" width="3" height="3"/><rect x="16" y="5" width="3" height="3"/><rect x="5" y="16" width="3" height="3"/><path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3"/>',
   dot: '<circle cx="12" cy="12" r="3"/>'
 };
 function svgIcon(name, cls){
@@ -466,7 +496,7 @@ function renderHeader(){
   const today=new Date();
   const dateStr = today.getDate()+'. '+MONTHS_GEN[today.getMonth()]+' '+today.getFullYear();
   return '<div class="header">'+
-    '<div><h1 class="header-title">Môj prehľad</h1>'+
+    '<div><h1 class="header-title">Keevo</h1>'+
     '<div class="header-sub">Osobný register termínov</div></div>'+
     '<div class="header-date">'+dateStr+'</div></div>';
 }
@@ -672,6 +702,11 @@ function renderFooter(){
     '<div class="footer-actions">'+
       '<button class="btn btn-save '+(isDirty?'is-dirty':'')+'" id="manual-save-btn" data-action="manual-save" title="Uložiť teraz">'+
         svgIcon('save','save-icon')+'<span>Uložiť dáta</span></button>'+
+      '<div class="footer-sync-row">'+
+        '<button class="btn-sync" data-action="export-json">'+svgIcon('download')+' Exportovať</button>'+
+        '<button class="btn-sync" data-action="import-json">'+svgIcon('upload')+' Importovať</button>'+
+        '<button class="btn-sync" data-action="show-qr">'+svgIcon('qr')+' QR kód</button>'+
+      '</div>'+
       '<button class="footer-reset" data-action="reset-all">Obnoviť na pôvodné nastavenia</button>'+
     '</div>';
 }
@@ -686,6 +721,149 @@ function render(){
       searchQuery = e.target.value;
       document.getElementById('search-results').innerHTML = renderSearchResults();
     };
+  }
+}
+
+function exportJSON(){
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const d = new Date();
+  a.download = 'prehlad-zaloha-'+d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'.json';
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  showToast('Súbor sa sťahuje…');
+}
+
+function mergeImport(imported, mode){
+  if(mode === 'replace'){
+    state = imported;
+    state.activeCategoryId = OVERVIEW_ID;
+    render(); scheduleSave();
+    showToast('Dáta nahradené');
+    return;
+  }
+  // Merge: pridaj nové, zachovaj existujúce
+  const catIds = state.categories.map(function(c){ return c.id; });
+  (imported.categories||[]).forEach(function(c){ if(catIds.indexOf(c.id)<0) state.categories.push(c); });
+  const entIds = state.entities.map(function(e){ return e.id; });
+  (imported.entities||[]).forEach(function(e){ if(entIds.indexOf(e.id)<0) state.entities.push(e); });
+  const itIds = state.items.map(function(i){ return i.id; });
+  (imported.items||[]).forEach(function(i){ if(itIds.indexOf(i.id)<0) state.items.push(i); });
+  render(); scheduleSave();
+  showToast('Dáta zlúčené');
+}
+
+function openImportModal(preloadedData){
+  const root = document.getElementById('modal-root');
+  function showMergeChoice(imported){
+    root.innerHTML = '<div class="modal-overlay"><div class="modal" role="dialog">'+
+      '<h2 class="modal-title">Importovať dáta</h2>'+
+      '<p style="font-size:13px;color:var(--text-muted);margin:0 0 14px;">Ako chceš importovať '+
+        (imported.items||[]).length+' položiek z '+((imported.categories||[]).length)+' kategórií?</p>'+
+      '<div class="import-merge-opts">'+
+        '<label class="import-opt"><input type="radio" name="imode" value="merge" checked>'+
+          '<div><div class="import-opt-label">Zlúčiť</div>'+
+          '<div class="import-opt-desc">Pridá nové položky, existujúce zachová</div></div></label>'+
+        '<label class="import-opt"><input type="radio" name="imode" value="replace">'+
+          '<div><div class="import-opt-label">Nahradiť</div>'+
+          '<div class="import-opt-desc">Prepíše všetky tvoje dáta importovanými</div></div></label>'+
+      '</div>'+
+      '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+        '<button class="btn btn-secondary" id="imp-cancel">Zrušiť</button>'+
+        '<button class="btn btn-primary" id="imp-ok">Importovať</button>'+
+      '</div></div></div></div>';
+    root.querySelector('#imp-cancel').onclick = closeModal;
+    root.querySelector('#imp-ok').onclick = function(){
+      const mode = root.querySelector('input[name="imode"]:checked').value;
+      closeModal();
+      mergeImport(imported, mode);
+    };
+  }
+
+  if(preloadedData){
+    showMergeChoice(preloadedData);
+    return;
+  }
+
+  root.innerHTML = '<div class="modal-overlay"><div class="modal" role="dialog">'+
+    '<h2 class="modal-title">Importovať dáta</h2>'+
+    '<div class="import-drop" id="imp-drop">'+
+      svgIcon('upload')+
+      '<div class="import-drop-label">Klikni a vyber JSON súbor</div>'+
+      '<div class="import-drop-sub">alebo sem presuň súbor zo zálohy</div>'+
+    '</div>'+
+    '<input type="file" id="imp-file" accept=".json" style="display:none">'+
+    '<div class="modal-actions" style="margin-top:14px;"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-secondary" id="imp-cancel">Zrušiť</button>'+
+    '</div></div></div></div>';
+
+  root.querySelector('#imp-cancel').onclick = closeModal;
+  root.querySelector('#imp-drop').onclick = function(){ root.querySelector('#imp-file').click(); };
+  root.querySelector('.modal-overlay').addEventListener('click', function(e){
+    if(e.target.classList.contains('modal-overlay')) closeModal();
+  });
+
+  function readFile(file){
+    const reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        const imported = JSON.parse(ev.target.result);
+        if(!imported.categories || !imported.items) throw new Error('Neplatný formát');
+        showMergeChoice(imported);
+      }catch(err){
+        showToast('Chyba: neplatný JSON súbor');
+        closeModal();
+      }
+    };
+    reader.readAsText(file);
+  }
+  root.querySelector('#imp-file').onchange = function(e){ if(e.target.files[0]) readFile(e.target.files[0]); };
+  root.querySelector('#imp-drop').addEventListener('dragover', function(e){ e.preventDefault(); });
+  root.querySelector('#imp-drop').addEventListener('drop', function(e){
+    e.preventDefault();
+    if(e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+  });
+}
+
+function openQRModal(){
+  const root = document.getElementById('modal-root');
+  const data = JSON.stringify(state);
+  const kb = (new TextEncoder().encode(data).length / 1024).toFixed(1);
+  const tooBig = data.length > 2800;
+
+  root.innerHTML = '<div class="modal-overlay"><div class="modal" role="dialog">'+
+    '<h2 class="modal-title">QR kód – zdieľanie dát</h2>'+
+    '<div class="qr-modal-body">'+
+      (tooBig ?
+        '<div class="qr-hint"><strong>Dáta sú príliš veľké pre QR kód ('+kb+' kB).</strong><br>Použi Export → JSON súbor a pošli ho cez WhatsApp alebo email.</div>' :
+        '<div class="qr-canvas-wrap"><canvas id="qr-canvas"></canvas></div>'+
+        '<div class="qr-hint">Naskenuj druhým telefónom → otvor odkaz → vyber <strong>Importovať z QR</strong></div>'
+      )+
+    '</div>'+
+    '<div class="modal-actions"><span></span><div class="modal-actions-right">'+
+      '<button class="btn btn-secondary" id="qr-close">Zavrieť</button>'+
+    '</div></div></div></div>';
+
+  root.querySelector('#qr-close').onclick = closeModal;
+  root.querySelector('.modal-overlay').addEventListener('click', function(e){
+    if(e.target.classList.contains('modal-overlay')) closeModal();
+  });
+
+  if(!tooBig){
+    setTimeout(function(){
+      const canvas = document.getElementById('qr-canvas');
+      if(!canvas) return;
+      // Enkódujeme dáta do URL parametra
+      const url = location.origin + location.pathname + '?import=' + encodeURIComponent(data);
+      if(typeof QRCode !== 'undefined'){
+        new QRCode(canvas, {text: url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.L});
+      } else {
+        canvas.parentNode.innerHTML = '<div class="qr-hint">QR knižnica sa nenačítala. Skontroluj internetové pripojenie.</div>';
+      }
+    }, 100);
   }
 }
 
@@ -978,6 +1156,12 @@ function onAppClick(e){
     openCategoryModal();
   } else if(action==='manual-save'){
     persist(true);
+  } else if(action==='export-json'){
+    exportJSON();
+  } else if(action==='import-json'){
+    openImportModal(null);
+  } else if(action==='show-qr'){
+    openQRModal();
   } else if(action==='reset-all'){
     openConfirm('Týmto sa vymažú všetky tvoje dáta a obnoví sa pôvodný zoznam. Naozaj pokračovať?', function(){
       state = buildDefaultData();
@@ -992,6 +1176,21 @@ async function init(){
   document.getElementById('app').innerHTML = '<div class="loading">Načítavam…</div>';
   document.querySelector('.app-shell').addEventListener('click', onAppClick);
   await loadData();
+
+  // Skontroluj či URL obsahuje ?import= parameter (príchod z QR kódu)
+  const params = new URLSearchParams(location.search);
+  const importParam = params.get('import');
+  if(importParam){
+    try{
+      const imported = JSON.parse(decodeURIComponent(importParam));
+      if(imported.categories && imported.items){
+        // Vyčisti URL bez reload
+        history.replaceState(null, '', location.pathname);
+        // Krátka pauza aby sa appka stihla vyrenderovať
+        setTimeout(function(){ openImportModal(imported); }, 400);
+      }
+    }catch(e){ /* ignoruj zlý parameter */ }
+  }
 }
 init();
 

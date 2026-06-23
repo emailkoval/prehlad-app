@@ -1,6 +1,6 @@
 {
-  "name": "Môj prehľad",
-  "short_name": "Prehľad",
+  "name": "Keevo",
+  "short_name": "Keevo",
   "description": "Osobný register termínov – auto, domácnosť, zdravie a ďalšie",
   "start_url": "/prehlad-app/",
   "scope": "/prehlad-app/",
