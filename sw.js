@@ -1,4 +1,4 @@
-const CACHE = 'prehlad-v2';
+const CACHE = 'prehlad-v3';
 const BASE = '/prehlad-app/';
 const ASSETS = [
   BASE,
@@ -12,6 +12,7 @@ const ASSETS = [
   BASE + 'icon-512.png'
 ];
 
+// Predinštaluj do cache
 self.addEventListener('install', function(e){
   e.waitUntil(
     caches.open(CACHE).then(function(c){ return c.addAll(ASSETS); })
@@ -19,6 +20,7 @@ self.addEventListener('install', function(e){
   self.skipWaiting();
 });
 
+// Vymaž staré cache
 self.addEventListener('activate', function(e){
   e.waitUntil(
     caches.keys().then(function(keys){
@@ -31,23 +33,24 @@ self.addEventListener('activate', function(e){
   self.clients.claim();
 });
 
+// Network-first: vždy skús sieť, padni späť na cache
 self.addEventListener('fetch', function(e){
   if(e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   if(!url.pathname.startsWith(BASE)) return;
+
   e.respondWith(
-    caches.open(CACHE).then(function(cache){
-      return cache.match(e.request).then(function(cached){
-        if(cached) return cached;
-        return fetch(e.request).then(function(res){
-          if(res && res.status === 200){
-            cache.put(e.request, res.clone());
-          }
-          return res;
-        }).catch(function(){
-          // Ak sme offline a nenašli v cache, vráť index.html
-          return cache.match(BASE + 'index.html');
-        });
+    fetch(e.request).then(function(res){
+      // Aktualizuj cache čerstvou verziou
+      if(res && res.status === 200){
+        var clone = res.clone();
+        caches.open(CACHE).then(function(c){ c.put(e.request, clone); });
+      }
+      return res;
+    }).catch(function(){
+      // Offline – vráť z cache, pri navigácii vráť index.html
+      return caches.match(e.request).then(function(cached){
+        return cached || caches.match(BASE + 'index.html');
       });
     })
   );
