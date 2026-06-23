@@ -1,7 +1,16 @@
-const CACHE = 'prehlad-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json',
-  '/icon-48.png', '/icon-72.png', '/icon-96.png',
-  '/icon-144.png', '/icon-192.png', '/icon-512.png'];
+const CACHE = 'prehlad-v2';
+const BASE = '/prehlad-app/';
+const ASSETS = [
+  BASE,
+  BASE + 'index.html',
+  BASE + 'manifest.json',
+  BASE + 'icon-48.png',
+  BASE + 'icon-72.png',
+  BASE + 'icon-96.png',
+  BASE + 'icon-144.png',
+  BASE + 'icon-192.png',
+  BASE + 'icon-512.png'
+];
 
 self.addEventListener('install', function(e){
   e.waitUntil(
@@ -13,7 +22,10 @@ self.addEventListener('install', function(e){
 self.addEventListener('activate', function(e){
   e.waitUntil(
     caches.keys().then(function(keys){
-      return Promise.all(keys.filter(function(k){ return k!==CACHE; }).map(function(k){ return caches.delete(k); }));
+      return Promise.all(
+        keys.filter(function(k){ return k !== CACHE; })
+            .map(function(k){ return caches.delete(k); })
+      );
     })
   );
   self.clients.claim();
@@ -21,14 +33,22 @@ self.addEventListener('activate', function(e){
 
 self.addEventListener('fetch', function(e){
   if(e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if(!url.pathname.startsWith(BASE)) return;
   e.respondWith(
-    caches.match(e.request).then(function(cached){
-      return cached || fetch(e.request).then(function(res){
-        if(!res || res.status !== 200 || res.type === 'opaque') return res;
-        var clone = res.clone();
-        caches.open(CACHE).then(function(c){ c.put(e.request, clone); });
-        return res;
-      }).catch(function(){ return cached; });
+    caches.open(CACHE).then(function(cache){
+      return cache.match(e.request).then(function(cached){
+        if(cached) return cached;
+        return fetch(e.request).then(function(res){
+          if(res && res.status === 200){
+            cache.put(e.request, res.clone());
+          }
+          return res;
+        }).catch(function(){
+          // Ak sme offline a nenašli v cache, vráť index.html
+          return cache.match(BASE + 'index.html');
+        });
+      });
     })
   );
 });
