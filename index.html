@@ -49,10 +49,11 @@
 
   .app-shell{max-width:880px;margin:0 auto;padding:24px 16px 64px;}
 
-  .header{position:sticky;top:0;z-index:30;background:var(--bg-base);
+  .header{position:fixed;top:0;left:0;right:0;z-index:30;background:var(--bg-base);
     display:flex;justify-content:space-between;align-items:center;gap:12px;
     padding:14px 16px;border-bottom:1px solid var(--panel-border);
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
+  .header-spacer{height:62px;}/* rezerva pre fixed header */
   .header-left{display:flex;align-items:center;gap:12px;min-width:0;}
   .header-title{font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:-0.01em;
     margin:0;line-height:1;color:var(--text-primary);white-space:nowrap;}
@@ -282,6 +283,7 @@
 </head>
 <body>
 <div id="app-header"></div>
+<div class="header-spacer"></div>
 <div class="app-shell">
   <div id="app"></div>
   <div id="app-footer"></div>
