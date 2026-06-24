@@ -50,10 +50,12 @@
   .app-shell{max-width:880px;margin:0 auto;padding:24px 16px 64px;}
 
   .header{position:fixed;top:0;left:0;right:0;z-index:30;background:var(--bg-base);
-    display:flex;justify-content:space-between;align-items:center;gap:12px;
-    padding:14px 16px;border-bottom:1px solid var(--panel-border);
+    display:flex;flex-direction:column;align-items:flex-start;gap:8px;
+    padding:12px 16px 10px;border-bottom:1px solid var(--panel-border);
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);}
-  .header-spacer{height:62px;}/* rezerva pre fixed header */
+  .header-spacer{height:90px;}
+  .header-top{display:flex;justify-content:space-between;align-items:center;width:100%;}
+  .header-bottom{display:flex;align-items:center;width:100%;}
   .header-left{display:flex;align-items:center;gap:12px;min-width:0;}
   .header-title{font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:-0.01em;
     margin:0;line-height:1;color:var(--text-primary);white-space:nowrap;}
@@ -547,8 +549,11 @@ function renderHeader(){
     '</button>';
 
   return '<div class="header">'+
-    '<div class="header-left">'+
+    '<div class="header-top">'+
       '<h1 class="header-title">Keevo</h1>'+
+      '<div class="header-date">'+dateStr+'</div>'+
+    '</div>'+
+    '<div class="header-bottom">'+
       '<div class="cat-dropdown-wrap">'+
         '<button class="cat-dropdown-btn" id="cat-dropdown-btn" data-action="toggle-cat-dropdown">'+
           svgIcon(active.icon,'tab-icon')+
@@ -558,7 +563,6 @@ function renderHeader(){
         '<div class="cat-dropdown-menu" id="cat-dropdown-menu">'+menuItems+'</div>'+
       '</div>'+
     '</div>'+
-    '<div class="header-date">'+dateStr+'</div>'+
   '</div>';
 }
 
